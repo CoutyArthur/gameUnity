@@ -6,6 +6,7 @@ public class cour1 : MonoBehaviour
 
     InputAction _moveAction;
     InputAction _jumpAction;
+    InputAction _fireAction;
     Rigidbody _rigidbody;
     Vector2 _moveInput;
     bool _jumpInput;
@@ -15,6 +16,9 @@ public class cour1 : MonoBehaviour
 
     Animator _animatorController;
     Collider _collider;
+
+    [SerializeField] GameObject _projectile;
+    float _projectileSpeed = 50f;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -26,10 +30,14 @@ public class cour1 : MonoBehaviour
         _jumpAction = InputSystem.actions.FindAction("jump");
         _jumpAction.performed += ctx => jump();
 
+        _fireAction = InputSystem.actions.FindAction("attack");
+        _fireAction.performed += ctx => fire();
+
 
         _rigidbody = GetComponent<Rigidbody>();
         _animatorController = GetComponent<Animator>();
         _collider = GetComponent<BoxCollider>();
+
         
     }
 
@@ -41,14 +49,6 @@ public class cour1 : MonoBehaviour
             walk();
         }
 
-    }
-
-    void onTriggerEnter(Collider collider)
-    {
-        if(collider.gameObject.CompareTag("Ground"))
-            _animatorController.SetBool("jump", false);
-        else
-            _animatorController.SetBool("jump", true);
     }
 
     void walk()
@@ -67,5 +67,22 @@ public class cour1 : MonoBehaviour
         //_rigidbody.linearVelocity = new Vector3(_rigidbody.linearVelocity.x, _jumpHeight, _rigidbody.linearVelocity.z);
         _rigidbody.AddForce(new Vector3(0,_jumpHeight,0), ForceMode.Impulse);
             
+    }
+
+    void fire()
+    {
+        Vector3 offset = new Vector3(0,1.5f,0);
+        GameObject p = Instantiate(_projectile, transform.position + transform.forward + offset, transform.rotation);
+        Rigidbody _rbp = p.GetComponent<Rigidbody>();
+        _rbp.linearVelocity +=  transform.forward * _projectileSpeed;
+        Destroy(p,5f); 
+    }
+
+    void onTriggerEnter(Collider collider)
+    {
+        if(collider.gameObject.CompareTag("Ground"))
+            _animatorController.SetBool("jump", false);
+        else
+            _animatorController.SetBool("jump", true);
     }
 }
