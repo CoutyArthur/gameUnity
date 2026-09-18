@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections.Generic;
 
 public class cour1 : MonoBehaviour
 {
@@ -48,7 +49,6 @@ public class cour1 : MonoBehaviour
         {
             walk();
         }
-
     }
 
     void walk()
@@ -73,16 +73,20 @@ public class cour1 : MonoBehaviour
     {
         Vector3 offset = new Vector3(0,1.5f,0);
         GameObject p = Instantiate(_projectile, transform.position + transform.forward + offset, transform.rotation);
-        Rigidbody _rbp = p.GetComponent<Rigidbody>();
-        _rbp.linearVelocity +=  transform.forward * _projectileSpeed;
+        Rigidbody rbp = p.GetComponent<Rigidbody>();
+        rbp.linearVelocity +=  transform.forward * _projectileSpeed;
         Destroy(p,5f); 
     }
 
-    void onTriggerEnter(Collider collider)
+    void OnTriggerEnter(Collider collider)
     {
-        if(collider.gameObject.CompareTag("Ground"))
+        if(collider.gameObject.CompareTag("Ground"))           
             _animatorController.SetBool("jump", false);
-        else
+    }
+
+    void OnTriggerExit(Collider collider)
+    {
+        if (collider.gameObject.CompareTag("Ground"))
             _animatorController.SetBool("jump", true);
     }
 }
