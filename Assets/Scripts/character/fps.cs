@@ -27,11 +27,7 @@ public class fps : MonoBehaviour
 
     bool onGround = true;
 
-    Animator _animatorController;
     Collider _collider;
-
-    [SerializeField] GameObject _projectile;
-    float _projectileSpeed = 50f;
 
     bool _fireInput;
     float nextTimeToFire = 0f;
@@ -64,7 +60,6 @@ public class fps : MonoBehaviour
 
 
         _rigidbody = GetComponent<Rigidbody>();
-        _animatorController = GetComponent<Animator>();
         _collider = GetComponent<BoxCollider>();
 
 
@@ -97,10 +92,6 @@ public class fps : MonoBehaviour
             move = move * _sprintBoost;
         //this.transform.Translate(move * _moveSpeed * Time.deltaTime);
         _rigidbody.linearVelocity = new Vector3(move.x * _moveSpeed, _rigidbody.linearVelocity.y, move.z * _moveSpeed);
-        if (_rigidbody.linearVelocity.magnitude > 0 && _rigidbody.linearVelocity.y == 0)
-            _animatorController.SetBool("walk", true);
-        else
-            _animatorController.SetBool("walk", false);
     }
 
     void jump()

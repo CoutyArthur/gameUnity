@@ -12,7 +12,7 @@ public class TargetSpawn : MonoBehaviour
 
         Vector3 position = new Vector3(
             Random.Range(b.min.x, b.max.x),
-            b.max.y + _heightOffset,
+            Random.Range(b.min.y, b.max.y),
             Random.Range(b.min.z, b.max.z)
         );
 
