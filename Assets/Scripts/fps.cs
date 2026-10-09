@@ -25,12 +25,18 @@ public class fps : MonoBehaviour
     Vector2 _lookInput;
     [SerializeField] Transform _cameraTransform; // à assigner dans l'Inspector
 
+    bool onGround = true;
 
     Animator _animatorController;
     Collider _collider;
 
     [SerializeField] GameObject _projectile;
     float _projectileSpeed = 50f;
+
+    bool _fireInput;
+    float nextTimeToFire = 0f;
+    float fireRate = 0.15f;
+    float fireRange = 100f;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -43,7 +49,8 @@ public class fps : MonoBehaviour
         _jumpAction.performed += ctx => jump();
 
         _fireAction = InputSystem.actions.FindAction("attack");
-        _fireAction.performed += ctx => fire();
+        _fireAction.performed += ctx => _fireInput = true;
+        _fireAction.canceled += ctx => _fireInput = false;
 
         _lookAction = InputSystem.actions.FindAction("look");
         _lookAction.performed += ctx => _lookInput = ctx.ReadValue<Vector2>();
@@ -70,6 +77,7 @@ public class fps : MonoBehaviour
         {
             walk();
         }
+        if(_fireInput) fire();
         look();
     }
 
@@ -98,17 +106,23 @@ public class fps : MonoBehaviour
     void jump()
     {
         //_rigidbody.linearVelocity = new Vector3(_rigidbody.linearVelocity.x, _jumpHeight, _rigidbody.linearVelocity.z);
-        _rigidbody.AddForce(new Vector3(0, _jumpHeight, 0), ForceMode.Impulse);
+        if(onGround)
+            _rigidbody.AddForce(new Vector3(0, _jumpHeight, 0), ForceMode.Impulse);
 
     }
 
     void fire()
     {
-        Vector3 offset = new Vector3(0, 1.5f, 0);
-        GameObject p = Instantiate(_projectile, transform.position + transform.forward + offset, transform.rotation);
-        Rigidbody rbp = p.GetComponent<Rigidbody>();
-        rbp.linearVelocity += transform.forward * _projectileSpeed;
-        Destroy(p, 5f);
+        if (Time.time < nextTimeToFire) return;
+        nextTimeToFire = Time.time + fireRate;
+
+        Ray ray = new Ray(_cameraTransform.position, _cameraTransform.forward);
+
+        if (Physics.Raycast(ray, out RaycastHit hit, fireRange, ~0, QueryTriggerInteraction.Ignore))
+        {
+            if (hit.collider.CompareTag("Target"))
+                Destroy(hit.collider.gameObject);
+        }
     }
 
     void look()
@@ -127,12 +141,12 @@ public class fps : MonoBehaviour
     void OnTriggerEnter(Collider collider)
     {
         if (collider.gameObject.CompareTag("Ground"))
-            _animatorController.SetBool("jump", false);
+            onGround = true;
     }
 
     void OnTriggerExit(Collider collider)
     {
         if (collider.gameObject.CompareTag("Ground"))
-            _animatorController.SetBool("jump", true);
+            onGround = false;
     }
 }
