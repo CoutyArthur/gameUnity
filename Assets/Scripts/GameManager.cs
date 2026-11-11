@@ -7,7 +7,8 @@ public class GameManager : MonoBehaviour
     public GameState CurrentState;
 
     [SerializeField] private TargetSpawn targetSpawn;
-    
+    [SerializeField] private GameHUD gameHUD;
+
     void Awake()
     {
         if (Instance != null && Instance != this)

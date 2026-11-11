@@ -1,6 +1,7 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using System.Collections.Generic;
 
 public class fps : MonoBehaviour
 {
@@ -33,6 +34,7 @@ public class fps : MonoBehaviour
     float nextTimeToFire = 0f;
     float fireRate = 0.15f;
     float fireRange = 100f;
+    public static event Action<bool> OnTargetHit;
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -112,7 +114,10 @@ public class fps : MonoBehaviour
         if (Physics.Raycast(ray, out RaycastHit hit, fireRange, ~0, QueryTriggerInteraction.Ignore))
         {
             if (hit.collider.CompareTag("Target"))
+            {
+                OnTargetHit?.Invoke(true);
                 Destroy(hit.collider.gameObject);
+            }
         }
     }
 
