@@ -1,16 +1,29 @@
-using Unity.VisualScripting.Antlr3.Runtime;
+using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.EnhancedTouch;
 
 public class GameManager : MonoBehaviour
 {
     public static GameManager Instance{get; private set;}
     public enum GameState{MainMenu, Playing, Paused, GameOver, Victory}
     public GameState CurrentState;
+    public static event Action<GameState> OnStateChanged;
 
     [SerializeField] private TargetSpawn targetSpawn;
     [SerializeField] private GameHUD gameHUD;
     [SerializeField] private GameObject pausePanel;
+    [SerializeField] private GameObject mainPausePanel;
+    [SerializeField] private GameObject SettingsPanel;
+
+    private int score;
+    public static event Action<int> OnScoreChanged;
+
+    private float elapsedTime;
+    private int minutes;
+    private int seconds;
+    public static event Action<int> OnMinutesChanged;
+    public static event Action<int> OnSecondsChanged;
 
     void Awake()
     {
@@ -26,6 +39,7 @@ public class GameManager : MonoBehaviour
     void Start()
     {
         ChangeState(GameState.Playing);
+        score = 0;
         for (int i=0; i<5; i++)
         {
             targetSpawn.spawnTarget();
@@ -51,6 +65,10 @@ public class GameManager : MonoBehaviour
                 
             }
         }
+        if(CurrentState == GameState.Playing)
+        {
+            TimeUpdate();
+        }
     }
 
     public void ChangeState(GameState newState)
@@ -64,23 +82,21 @@ public class GameManager : MonoBehaviour
         {
             Time.timeScale = 1;
         }
+        OnStateChanged?.Invoke(CurrentState);
     }
 
     public void Paused()
     {
         ChangeState(GameState.Paused);
-        pausePanel.SetActive(true);
-        Cursor.lockState = CursorLockMode.None;
     }
 
     public void UnPaused()
     {
         ChangeState(GameState.Playing);
-        pausePanel.SetActive(false);
-        Cursor.lockState = CursorLockMode.Locked;
     }
 
     public void Resume() => UnPaused();
+
 
     public void Quit()
     {
@@ -89,5 +105,34 @@ public class GameManager : MonoBehaviour
         #else
             Application.Quit();
         #endif
+    }
+
+    void OnEnable() => fps.OnTargetHit += AddScore;
+    public void AddScore(bool touche)
+    {
+        if (touche)
+        {
+            score += 1;
+            OnScoreChanged?.Invoke(score);
+        }
+    }
+
+    public void TimeUpdate()
+    {
+        elapsedTime += Time.deltaTime;
+
+        int newMinutes = (int)(elapsedTime / 60f);
+        if (newMinutes != minutes)
+        {
+            minutes = newMinutes;
+            OnMinutesChanged?.Invoke(minutes);
+        }
+
+        int newSeconds = (int)(elapsedTime % 60f);
+        if (newSeconds != seconds)
+        {
+            seconds = newSeconds;
+            OnSecondsChanged?.Invoke(seconds);
+        }
     }
 }

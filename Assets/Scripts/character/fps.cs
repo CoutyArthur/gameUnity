@@ -13,13 +13,13 @@ public class fps : MonoBehaviour
     Rigidbody _rigidbody;
     Vector2 _moveInput;
     float _jumpHeight = 5f;
-    [SerializeField] float _moveSpeed = 5f;
+    [SerializeField] float _moveSpeed = 25f;
     float _sprintBoost = 1.5f;
     bool _sprintInput;
 
     //Rotation de la caméra
     float rotationX = 0;
-    [SerializeField] public float rotationSpeed = 0.5f;
+    [SerializeField][Range(0.05f, 1f)] public float rotationSpeed = 0.5f;
     public float rotationXLimit = 45.0f;
 
     InputAction _lookAction;
@@ -35,6 +35,12 @@ public class fps : MonoBehaviour
     float fireRate = 0.15f;
     float fireRange = 100f;
     public static event Action<bool> OnTargetHit;
+
+    private GameManager.GameState currentState;
+
+    void OnEnable() => GameManager.OnStateChanged += OnState;
+    void OnDisable() => GameManager.OnStateChanged -= OnState;
+
 
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
@@ -64,19 +70,25 @@ public class fps : MonoBehaviour
         _rigidbody = GetComponent<Rigidbody>();
         _collider = GetComponent<BoxCollider>();
 
+        currentState = GameManager.Instance.CurrentState;
 
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (_moveAction != null)
+        if (currentState == GameManager.GameState.Playing)
         {
-            walk();
+            if (_moveAction != null)
+            {
+                walk();
+            }
+            if (_fireInput) fire();
+            look();
         }
-        if(_fireInput) fire();
-        look();
     }
+
+    private void OnState(GameManager.GameState state) => currentState = state;
 
     void walk()
     {
@@ -93,7 +105,7 @@ public class fps : MonoBehaviour
         if( _sprintInput )
             move = move * _sprintBoost;
         //this.transform.Translate(move * _moveSpeed * Time.deltaTime);
-        _rigidbody.linearVelocity = new Vector3(move.x * _moveSpeed, _rigidbody.linearVelocity.y, move.z * _moveSpeed);
+        _rigidbody.linearVelocity = new Vector3(move.x, _rigidbody.linearVelocity.y, move.z);
     }
 
     void jump()
@@ -132,6 +144,11 @@ public class fps : MonoBehaviour
 
         if (_cameraTransform != null)
             _cameraTransform.localRotation = Quaternion.Euler(rotationX, 0, 0);
+    }
+
+    public void SetRotationSpeed(float value)
+    {
+        rotationSpeed = value;
     }
 
     void OnTriggerEnter(Collider collider)

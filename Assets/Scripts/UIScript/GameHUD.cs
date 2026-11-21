@@ -7,33 +7,27 @@ public class GameHUD : MonoBehaviour
     [SerializeField] private TextMeshProUGUI timerText;
     [SerializeField] private TextMeshProUGUI scoreText;
 
-    private float elapsed;
-    private int score;
-
-    void OnEnable() => fps.OnTargetHit += AddScore;
-    void OnDisable() => fps.OnTargetHit -= AddScore;
+    private int minutes;
+    private int seconds;
 
     void Awake()
     {
-        UpdateScore();
+        scoreText.text = $"Score : {0}";
     }
 
     void Update()
     {
-        elapsed += Time.deltaTime;
-        int minutes = (int)(elapsed / 60f);
-        int seconds = (int)(elapsed % 60f);
         timerText.text = $"{minutes:00}:{seconds:00}";
     }
 
-    public void AddScore(bool touche)
+    void OnEnable()
     {
-        if (touche)
-        {
-            score += 1;
-            UpdateScore();
-        }
+        GameManager.OnScoreChanged += UpdateScore;
+        GameManager.OnMinutesChanged += UpdateMinutes;
+        GameManager.OnSecondsChanged += UpdateSeconds;
     }
 
-    private void UpdateScore() => scoreText.text = $"Score : {score}";
+    private void UpdateScore(int score) => scoreText.text = $"Score : {score}";
+    private void UpdateMinutes(int min) => minutes = min;
+    private void UpdateSeconds(int sec) => seconds = sec;
 }
